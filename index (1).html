@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>CyberSwipe 60s</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body,#root{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:#090d16;color:#e6f1ff;font-family:'Share Tech Mono',ui-monospace,monospace;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.orb{font-family:Orbitron,'Share Tech Mono',monospace}
+.glow{text-shadow:0 0 12px #00ff9d,0 0 34px #00ff9d88}
+.cgrid{background-image:linear-gradient(rgba(0,255,157,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,210,255,.05) 1px,transparent 1px);background-size:32px 32px}
+.glitch{animation:gl .35s steps(3) 1}
+@keyframes gl{0%{filter:hue-rotate(90deg) contrast(1.5) saturate(2)}50%{filter:hue-rotate(-90deg) invert(.1)}100%{filter:none}}
+</style></head><body><div id="root"></div>
+<script>
+const FM=window.Motion||window.FramerMotion;
+const {motion:M,AnimatePresence:AP,useMotionValue,useTransform,useAnimation}=FM;
+const h=htm.bind(React.createElement);const {useState,useRef,useEffect}=React;
+const sh=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const D=[
+['📧','E-MAIL','suporte@banc0-seguro.com','Sua conta será bloqueada em 24h. Confirme seus dados agora.',0,'Domínio com “0” no lugar do “o” e urgência falsa.'],
+['📱','SMS','CORREIOS-INFO','Taxa de R$ 7,90 pendente. Pague em correios-entrega.top/rastreio',0,'Domínio .top falso; os Correios não cobram assim.'],
+['🎁','POP-UP','promo-vip.site','PARABÉNS! Você ganhou um iPhone 15. Resgate em 2 minutos!',0,'Prêmio surpresa com contagem regressiva é golpe.'],
+['🔐','LOGIN','Conta Google','Tentativa de login em Moscou, Rússia, às 03:12. Aprovar?',0,'Você não estava lá. Bloqueie e troque a senha.'],
+['💬','WHATSAPP','+55 61 9•••• (novo)','Oi mãe, mudei de número. Faz um Pix urgente pra mim?',0,'Golpe do número novo. Confirme por ligação.'],
+['📶','REDE','Free_Airport_WiFi','Rede aberta pede CPF e senha do e-mail para conectar.',0,'Portal falso em rede aberta rouba credenciais.'],
+['📎','ANEXO','financeiro@fornecedor.co','fatura_novembro.pdf.exe',0,'Extensão dupla: é um executável disfarçado.'],
+['📞','LIGAÇÃO','“Gerente do banco”','Informe o código de 6 dígitos que acabou de chegar por SMS.',0,'Banco nunca pede código de verificação.'],
+['📊','E-MAIL','rh@empresa-corp.net','Planilha de salários 2026. Ative as macros para visualizar.',0,'Macros em anexo inesperado = malware.'],
+['🔦','APP','Lanterna Pro','Solicita acesso a contatos, SMS e microfone.',0,'Permissões absurdas para uma lanterna.'],
+['🔗','LINK','g00gle-drive.share-docs.xyz','Arquivo compartilhado com você. Entre com sua conta Google.',0,'Domínio imitando o Google: phishing.'],
+['💾','USB','Estacionamento','Pendrive achado no chão: “Fotos_Festa”. Conectar?',0,'USB achado no chão é isca clássica.'],
+['💼','LINKEDIN','Recrutador “Global Inc.”','R$ 15 mil/mês! Envie foto do RG e do cartão para cadastro.',0,'Vaga boa demais pedindo dados sensíveis.'],
+['🔔','PUSH MFA','App Autenticador','Aprovar login? (3ª notificação em 1 minuto)',0,'Fadiga de MFA: você não iniciou, negue.'],
+['🧾','QR CODE','Poste da rua','Pague o estacionamento: escaneie o QR colado no poste.',0,'QR adesivado por cima do original (quishing).'],
+['🔑','2FA','Seu banco','Código 482915. Você acabou de pedir login no app. Não compartilhe.',1,'Você pediu agora e não compartilhou o código.'],
+['⬆️','SISTEMA','Configurações › Atualização','Atualização de segurança disponível. Instalar e reiniciar?',1,'Vem do próprio sistema, sem link externo.'],
+['🏦','E-MAIL','avisos@seubanco.com.br','Sua fatura fechou. Abra o app oficial para ver. Sem links.',1,'Sem link nem anexo; manda ir ao app.'],
+['🧰','COFRE','Gerenciador de senhas','Desbloquear com biometria para preencher em github.com?',1,'Você digitou o site; o cofre confere o domínio.'],
+['💻','LOGIN','Google','Novo login no seu notebook, agora. Foi você? [Sim] [Não]',1,'Você acabou de logar. Confirmar é seguro.'],
+['🏢','VPN','vpn.suaempresa.com','Conectar à VPN corporativa (certificado válido).',1,'Domínio e certificado da sua empresa.'],
+['🗝️','CHAVE FIDO','YubiKey','Toque na chave de segurança para concluir o login.',1,'Chave física com você: login mais seguro.'],
+['☁️','BACKUP','iCloud / Google One','Backup automático concluído: 1.204 fotos.',1,'Rotina normal do serviço oficial.'],
+['🔒','SITE','gov.br','Certificado HTTPS válido, domínio gov.br confere.',1,'Cadeado e domínio exato.'],
+['🚨','SENHA VAZADA','Gerenciador de senhas','Sua senha do site X apareceu em um vazamento. Troque agora.',1,'Alerta do seu app; você troca direto no site.'],
+['🛠️','TI INTERNO','ti@suaempresa.com','Manutenção no sábado, 22h. Nada a fazer, sem links.',1,'Remetente certo e não pede nada.'],
+['🛡️','ANTIVÍRUS','Windows Defender','Definições de vírus atualizadas com sucesso.',1,'Atualização automática normal.'],
+['📬','ENTREGA','Loja que você usa','Seu pedido saiu. Rastreie no app da loja que você instalou.',1,'Compra sua, rastreio pelo app oficial.']
+].map(([ic,t,f,b,ok,w])=>({ic,t,f,b,ok:!!ok,w}));
+const LV=s=>s<1500?'Estagiário':s<3500?'Analista Jr':s<6000?'Especialista Cyber':'Lenda do Firewall';
+const ld=()=>{try{return JSON.parse(localStorage.getItem('cs60')||'[]')}catch(e){return[]}};
+const sv=r=>{try{localStorage.setItem('cs60',JSON.stringify(r))}catch(e){}};
+const SU='https://mzvrbjdlxungvjffieiv.supabase.co',SK='sb_publishable_EOXvcR4dRvkvL1m9o1NOOQ_5FnucLlg';
+const HD={apikey:SK,'Content-Type':'application/json'};
+const rt=async()=>{try{const r=await fetch(SU+'/rest/v1/ranking?select=nick,score&order=score.desc&limit=8',{headers:HD});if(!r.ok)return null;return(await r.json()).map(x=>({n:x.nick,s:x.score}))}catch(e){return null}};
+const ri=async(n,sc)=>{try{return(await fetch(SU+'/rest/v1/ranking',{method:'POST',headers:{...HD,Prefer:'return=minimal'},body:JSON.stringify({nick:n,score:sc})})).ok}catch(e){return false}};
+
+function Card({c,cp,onSwipe}){
+  const x=useMotionValue(0);
+  const rot=useTransform(x,[-220,220],[-18,18]);
+  const bc=useTransform(x,[-140,0,140],['#ff2a5f','#1d3354','#00ff9d']);
+  const sg=useTransform(x,[-140,0,140],['0 0 40px #ff2a5faa','0 0 16px #00d2ff22','0 0 40px #00ff9daa']);
+  const ob=useTransform(x,[-110,-15,0],[1,0,0]);
+  const oa=useTransform(x,[0,15,110],[0,0,1]);
+  const end=(e,i)=>{if(i.offset.x<-100||i.velocity.x<-500)onSwipe('L');else if(i.offset.x>100||i.velocity.x>500)onSwipe('R')};
+  return h`<${M.div} drag="x" dragSnapToOrigin dragElastic=${.9} onDragEnd=${end}
+    initial=${{scale:.92,y:18,opacity:.6}} animate=${{scale:1,y:0,opacity:1}}
+    transition=${{type:'spring',stiffness:300,damping:24}}
+    variants=${{exit:d=>({x:d*700,y:d?0:220,rotate:d*28,opacity:0,transition:{duration:.35,ease:'easeOut'}})}} exit="exit"
+    style=${{x,rotate:rot,borderColor:bc,boxShadow:sg,touchAction:'none'}}
+    class="absolute inset-0 rounded-2xl border-2 bg-[#0e1626] p-4 flex flex-col overflow-hidden cursor-grab">
+    <div class="absolute top-0 left-0 h-[4px] rounded-r" style=${{width:((1-cp)*100)+'%',background:cp>.7?'#ff2a5f':'#00d2ff',boxShadow:'0 0 8px currentColor'}}></div>
+    <div class="flex items-center gap-3 mt-1"><span class="text-3xl">${c.ic}</span>
+      <span class="orb text-[10px] tracking-widest px-2 py-1 rounded border border-[#00d2ff55] text-[#00d2ff]">${c.t}</span></div>
+    <div class="mt-3 text-[11px] text-[#7e93b5] break-all">DE: <span class="text-[#00d2ff]">${c.f}</span></div>
+    <div class="mt-2 text-sm leading-snug text-white break-words overflow-y-auto">${c.b}</div>
+    <${M.div} style=${{opacity:ob}} class="orb absolute right-3 top-1/2 text-xl font-black text-[#ff2a5f] border-4 border-[#ff2a5f] rounded-lg px-2 py-1 -rotate-12 bg-[#ff2a5f18] pointer-events-none">BLOCKED<//>
+    <${M.div} style=${{opacity:oa}} class="orb absolute left-3 top-1/2 text-xl font-black text-[#00ff9d] border-4 border-[#00ff9d] rounded-lg px-2 py-1 rotate-12 bg-[#00ff9d18] pointer-events-none">ALLOWED<//>
+  <//>`;
+}
+
+function Game({onEnd}){
+  const deck=useState(()=>sh(D).concat(sh(D)))[0];
+  const S=useRef({score:0,streak:0,best:0,hit:0,tot:0,time:60000,cs:performance.now(),cp:0,i:0,dir:0,lock:false,over:false,msg:null});
+  const [u,setU]=useState({...S.current});
+  const [fx,setFx]=useState({b:[],f:0,g:false});
+  const ctl=useAnimation();
+  const sync=()=>setU({...S.current});
+  const ans=c=>{
+    const s=S.current;if(s.over||s.lock)return;s.lock=true;setTimeout(()=>{s.lock=false},130);
+    const cd=deck[s.i];const ok=!!c&&((c==='R')===cd.ok);s.tot++;s.dir=c==='L'?-1:c==='R'?1:0;
+    if(ok){
+      const m=Math.min(4,1+Math.floor(s.streak/3));s.score+=100*m;s.streak++;s.hit++;s.best=Math.max(s.best,s.streak);
+      if(s.streak%3===0){const id=Math.random();const v=Array.from({length:16},(_,k)=>({a:k/16*6.283,r:70+Math.random()*80}));
+        setFx(f=>({...f,b:[...f.b,{id,v,m:Math.min(4,1+Math.floor(s.streak/3))}]}));
+        setTimeout(()=>setFx(f=>({...f,b:f.b.filter(q=>q.id!==id)})),900)}
+    }else{
+      s.streak=0;s.time-=3000;
+      ctl.start({x:[0,-14,14,-10,10,-4,0],y:[0,6,-6,4,-4,0,0],transition:{duration:.45}});
+      setFx(f=>({...f,f:f.f+1,g:true}));setTimeout(()=>setFx(f=>({...f,g:false})),380);
+    }
+    s.msg={ok,t:(c?'':'TEMPO ESGOTADO · ')+cd.w};s.i++;s.cs=performance.now();s.cp=0;sync();
+  };
+  useEffect(()=>{
+    let last=performance.now();
+    const id=setInterval(()=>{
+      const n=performance.now(),s=S.current;if(s.over)return;
+      s.time-=n-last;last=n;
+      if(s.time<=0){s.time=0;s.over=true;clearInterval(id);sync();setTimeout(()=>onEnd({score:s.score,hit:s.hit,tot:s.tot,best:s.best}),500);return}
+      const p=(n-s.cs)/4000;if(p>=1)ans(null);else s.cp=p;sync();
+    },50);
+    const kd=e=>{if(e.key==='ArrowLeft')ans('L');if(e.key==='ArrowRight')ans('R')};
+    window.addEventListener('keydown',kd);
+    return()=>{clearInterval(id);window.removeEventListener('keydown',kd)};
+  },[]);
+  const mult=Math.min(4,1+Math.floor(u.streak/3));const sec=Math.ceil(u.time/1000);
+  const top=deck[u.i],nxt=deck[u.i+1];
+  return h`<${M.div} animate=${ctl} class=${'h-full flex flex-col cgrid max-w-md mx-auto w-full relative '+(fx.g?'glitch':'')}>
+    <div class="grid grid-cols-3 items-center px-5 pt-3 text-center">
+      <div class="text-left"><div class="text-[10px] text-[#7e93b5]">SCORE</div><div class="orb text-lg text-[#00d2ff]">${u.score}</div></div>
+      <div><div class="text-[10px] text-[#7e93b5]">TEMPO</div>
+        <div class=${'orb text-3xl font-black '+(sec<=10?'text-[#ff2a5f]':'text-[#00ff9d] glow')}>${sec}</div></div>
+      <div class="text-right"><div class="text-[10px] text-[#7e93b5]">COMBO</div>
+        <${M.div} key=${u.streak} initial=${{scale:1.5}} animate=${{scale:1}} class=${'orb text-lg '+(mult>1?'text-[#00ff9d] glow':'text-[#7e93b5]')}>x${mult} · ${u.streak}<//></div>
+    </div>
+    <div class="mx-5 mt-2 h-1 rounded bg-[#16223a] overflow-hidden shrink-0"><div class="h-full bg-[#00ff9d]" style=${{width:(u.time/600)+'%'}}></div></div>
+    <div class="relative flex-1 min-h-[200px] mx-6 my-3 max-h-[380px]">
+      ${nxt&&h`<div key=${'b'+u.i} class="absolute inset-0 rounded-2xl border-2 border-[#1d3354] bg-[#0b1220]" style=${{transform:'scale(.92) translateY(18px)',opacity:.6}}></div>`}
+      <${AP} custom=${u.dir}>${top&&!u.over&&h`<${Card} key=${u.i} c=${top} cp=${u.cp} onSwipe=${ans}/>`}<//>
+      <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+        ${fx.b.map(b=>h`<div key=${b.id} class="absolute">
+          <${M.div} initial=${{scale:.2,opacity:1}} animate=${{scale:3.2,opacity:0}} transition=${{duration:.7}} class="w-24 h-24 -ml-12 -mt-12 rounded-full border-2 border-[#00ff9d]"/>
+          ${b.v.map((p,k)=>h`<${M.div} key=${k} initial=${{x:0,y:0,opacity:1,scale:1}} animate=${{x:Math.cos(p.a)*p.r,y:Math.sin(p.a)*p.r,opacity:0,scale:0}} transition=${{duration:.7,ease:'easeOut'}} class="absolute w-2 h-2 rounded-full" style=${{background:k%2?'#00ff9d':'#00d2ff',boxShadow:'0 0 8px #00ff9d'}}/>`)}
+          <${M.div} initial=${{y:0,opacity:1}} animate=${{y:-90,opacity:0}} transition=${{duration:.9}} class="orb absolute -ml-16 -mt-4 w-32 text-center text-base text-[#00ff9d] glow">COMBO x${b.m}<//>
+        </div>`)}
+      </div>
+    </div>
+    <div class="min-h-[44px] px-5 text-[11px] leading-tight text-center flex items-center justify-center shrink-0">
+      ${u.msg&&h`<${M.div} key=${u.i} initial=${{opacity:0,y:6}} animate=${{opacity:1,y:0}} class=${u.msg.ok?'text-[#00ff9d]':'text-[#ff2a5f]'}>${u.msg.ok?'✔ ':'✘ '}${u.msg.t}<//>`}
+    </div>
+    <div class="grid grid-cols-2 gap-4 px-5 pb-4 shrink-0">
+      <${M.button} whileTap=${{scale:.9}} onClick=${()=>ans('L')} class="orb h-16 rounded-2xl border-2 border-[#ff2a5f] bg-[#ff2a5f18] text-[#ff2a5f] text-3xl font-black" style=${{boxShadow:'0 0 20px #ff2a5f55'}}>✕<div class="text-[10px] tracking-widest">BLOQUEAR</div><//>
+      <${M.button} whileTap=${{scale:.9}} onClick=${()=>ans('R')} class="orb h-16 rounded-2xl border-2 border-[#00ff9d] bg-[#00ff9d18] text-[#00ff9d] text-3xl font-black" style=${{boxShadow:'0 0 20px #00ff9d55'}}>✓<div class="text-[10px] tracking-widest">PERMITIR</div><//>
+    </div>
+    <${AP}>${fx.f>0&&h`<${M.div} key=${fx.f} initial=${{opacity:.5}} animate=${{opacity:0}} transition=${{duration:.5}} class="fixed inset-0 bg-[#ff2a5f] pointer-events-none"/>`}<//>
+  <//>`;
+}
+
+function Start({go}){
+  return h`<div class="h-full flex flex-col cgrid items-center justify-center text-center px-6 max-w-md mx-auto">
+    <${M.div} initial=${{opacity:0,y:-20}} animate=${{opacity:1,y:0}}>
+      <div class="text-6xl mb-3">🛡️</div>
+      <h1 class="orb text-4xl font-black text-[#00ff9d] glow">CYBERSWIPE</h1>
+      <div class="orb text-2xl text-[#00d2ff] tracking-[.4em] mt-1">60s</div><//>
+    <p class="mt-8 text-xs text-[#9db3d4]"><span class="text-[#ff2a5f]">Deslize ← para Bloquear Ameaças</span> | <span class="text-[#00ff9d]">Deslize → para Permitir</span></p>
+    <${M.button} onClick=${go} whileTap=${{scale:.93}} animate=${{scale:[1,1.07,1],boxShadow:['0 0 10px #00ff9d66','0 0 38px #00ff9d','0 0 10px #00ff9d66']}} transition=${{duration:1.4,repeat:Infinity}}
+      class="orb mt-10 px-8 py-4 rounded-xl border-2 border-[#00ff9d] bg-[#00ff9d1a] text-[#00ff9d] text-sm font-black tracking-wider">INICIAR MISSÃO (60s)<//>
+  </div>`;
+}
+
+function Over({r,again}){
+  const [nick,setNick]=useState('');const [rank,setRank]=useState(ld);const [on,setOn]=useState(false);useEffect(()=>{rt().then(d=>{if(d){setRank(d);setOn(true)}})},[]);const [saved,setSaved]=useState(false);
+  const acc=r.tot?Math.round(r.hit/r.tot*100):0;
+  const save=async()=>{if(!nick||saved)return;setSaved(true);const l=[...ld(),{n:nick,s:r.score}].sort((a,b)=>b.s-a.s).slice(0,8);sv(l);const ok=await ri(nick,r.score);const d=ok&&await rt();if(d){setRank(d);setOn(true)}else setRank(l)};
+  const st=(l,v,c)=>h`<div class="rounded-xl border border-[#1d3354] bg-[#0e1626] p-3"><div class="text-[10px] text-[#7e93b5]">${l}</div><div class=${'orb text-lg '+c}>${v}</div></div>`;
+  return h`<${M.div} initial=${{opacity:0,scale:.95}} animate=${{opacity:1,scale:1}} class="h-full flex flex-col cgrid max-w-md mx-auto px-5 py-4 overflow-hidden">
+    <div class="text-center"><div class="orb text-xs tracking-widest text-[#ff2a5f]">MISSÃO ENCERRADA</div>
+      <div class="orb text-5xl font-black text-[#00ff9d] glow mt-1">${r.score}</div>
+      <div class="orb text-sm text-[#00d2ff] mt-1">${LV(r.score)}</div></div>
+    <div class="grid grid-cols-3 gap-2 mt-3 text-center">${st('PRECISÃO',acc+'%','text-[#00ff9d]')}${st('MAIOR COMBO',r.best,'text-[#00d2ff]')}${st('DECISÕES',r.tot,'text-white')}</div>
+    ${!saved?h`<div class="flex gap-2 mt-3">
+      <input value=${nick} maxlength="8" placeholder="NICKNAME" onInput=${e=>setNick(e.target.value.replace(/[^a-zA-Z]/g,'').toUpperCase())}
+        class="orb flex-1 min-w-0 rounded-xl bg-[#0e1626] border-2 border-[#1d3354] focus:border-[#00d2ff] outline-none px-3 py-3 text-sm text-center tracking-widest text-white" style=${{userSelect:'text'}}/>
+      <button onClick=${save} class="orb px-4 rounded-xl border-2 border-[#00ff9d] text-sm text-[#00ff9d] font-black">SALVAR</button></div>`:''}
+    <div class="flex-1 mt-3 overflow-hidden"><div class="orb text-[10px] text-[#7e93b5] mb-1">${on?'RANKING GLOBAL':'RANKING LOCAL (offline)'}</div>
+      ${rank.length?rank.map((x,i)=>h`<div key=${i} class="flex justify-between py-1 border-b border-[#16223a] text-xs"><span class=${i===0?'text-[#00ff9d]':'text-[#9db3d4]'}>${i+1}. ${x.n}</span><span class="text-[#00d2ff]">${x.s}</span></div>`):h`<div class="text-xs text-[#7e93b5]">Nenhum registro ainda.</div>`}</div>
+    <button onClick=${again} class="orb mt-3 py-4 rounded-xl border-2 border-[#00ff9d] bg-[#00ff9d1a] text-sm text-[#00ff9d] font-black tracking-wider">JOGAR NOVAMENTE</button>
+  <//>`;
+}
+
+function App(){
+  const [s,setS]=useState('start');const [r,setR]=useState(null);const [k,setK]=useState(0);
+  return h`<${AP} mode="wait"><${M.div} key=${s+k} class="h-full" initial=${{opacity:0}} animate=${{opacity:1}} exit=${{opacity:0}} transition=${{duration:.2}}>
+    ${s==='start'?h`<${Start} go=${()=>{setK(k+1);setS('play')}}/>`:s==='play'?h`<${Game} onEnd=${x=>{setR(x);setS('over')}}/>`:h`<${Over} r=${r} again=${()=>{setK(k+1);setS('play')}}/>`}
+  <//><//>`;
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h`<${App}/>`);
+</script></body></html>
